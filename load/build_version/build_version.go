@@ -6,6 +6,8 @@ import (
 )
 
 type BuildVersionHeader struct {
+	// Source: https://github.com/apple-oss-distributions/xnu/blob/8d741a5de7ff4191bf97d57b9f54c2f6d4a15585/EXTERNAL_HEADERS/mach-o/loader.h#L1260
+
 	CommandType load.CommandType
 	CommandSize uint32
 	Platform    Platform
