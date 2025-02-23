@@ -21,6 +21,8 @@ type BuildTool struct {
 	Version uint32
 }
 
+const BuildToolSize uint64 = 0x8
+
 func (tool BuildTool) MarshalBinary() ([]byte, error) {
 	return utils.GenericMarshalBinary(tool)
 }
