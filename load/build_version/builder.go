@@ -21,10 +21,6 @@ func (builder BuildVersionBuilder) HeaderLen() uint64 {
 	return BuildVersionHeaderSize + toolsSize
 }
 
-func (BuildVersionBuilder) DataLen() uint64 {
-	return 0
-}
-
 func (builder BuildVersionBuilder) HeaderWriteTo(
 	writer io.Writer,
 	ctx *context.CommandContext,
@@ -47,4 +43,12 @@ func (builder BuildVersionBuilder) HeaderWriteTo(
 	}
 
 	return writertoutils.MultiWriterTo(writerTos...).WriteTo(writer)
+}
+
+func (BuildVersionBuilder) DataLen() uint64 {
+	return 0
+}
+
+func (BuildVersionBuilder) DataWriteTo(io.Writer, *context.CommandContext) (int64, error) {
+	return 0, nil
 }
