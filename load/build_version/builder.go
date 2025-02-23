@@ -49,6 +49,6 @@ func (BuildVersionBuilder) DataLen() uint64 {
 	return 0
 }
 
-func (BuildVersionBuilder) DataWriteTo(io.Writer, *context.CommandContext) (int64, error) {
+func (BuildVersionBuilder) DataWriteTo(io.Writer) (int64, error) {
 	return 0, nil
 }
