@@ -89,32 +89,7 @@ type RelocationInfo struct {
 	Details uint32
 }
 
-const RelocationInfoSize int = 8
-
-func NewRelocationInfo(
-	address uint32,
-	symbolIndex uint32,
-	isRelocationPcRelative bool,
-	length RelocationLength,
-	isRelocationExtern bool,
-	typ RelocationType,
-) RelocationInfo {
-	if symbolIndex > RelocationSymbolNumMask {
-		return RelocationInfo{} // TODO: handle error
-	}
-
-	details := symbolIndex | (uint32(length) << 25) | (uint32(typ) << 28)
-
-	if isRelocationPcRelative {
-		details |= RelocationPcRelative
-	}
-
-	if isRelocationExtern {
-		details |= RelocationExtern
-	}
-
-	return RelocationInfo{Address: address, Details: details}
-}
+const RelocationInfoSize uint64 = 8
 
 func (r RelocationInfo) MarshalBinary() ([]byte, error) {
 	return utils.GenericMarshalBinary(r)

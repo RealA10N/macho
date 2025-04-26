@@ -14,19 +14,34 @@ type Section64Builder struct {
 	Address     uint64
 	Align       uint32
 	Flags       Section64Flags
-	Relocations RelocationsBuilder
+	Relocations []RelocationBuilder
 	// TODO: support custom section size (for BSS, etc.)
+}
+
+func (builder Section64Builder) relocationsOffset(
+	ctx *context.CommandContext,
+) uint64 {
+	if builder.relocationsLen() == 0 {
+		// Although calculating the offset even if the allocation array is of
+		// size zero is technically valid, it is not useful, and can be
+		// confusing, and even cause bugs in the future.
+		// We mimic other compilers and tools by returning 0 in this case.
+		return 0
+	}
+
+	dataStart := ctx.DataOffset
+	dataEnd := dataStart + uint64(len(builder.Data))
+	relocationsStart := dataEnd
+	return uint64(relocationsStart)
+}
+
+func (builder Section64Builder) relocationsLen() uint64 {
+	return uint64(len(builder.Relocations)) * RelocationInfoSize
 }
 
 func (builder Section64Builder) Build(
 	ctx *context.CommandContext,
 ) Section64Header {
-	numberOfRelocations := uint32(builder.Relocations.NumberOfRelocations())
-	relocationsOffset := uint32(0)
-	if numberOfRelocations != 0 {
-		relocationsOffset = uint32(ctx.DataOffset + uint64(len(builder.Data)))
-	}
-
 	return Section64Header{
 		SectionName:         builder.SectionName,
 		SegmentName:         builder.SegmentName,
@@ -34,8 +49,8 @@ func (builder Section64Builder) Build(
 		Size:                uint64(len(builder.Data)),
 		Offset:              uint32(ctx.DataOffset),
 		Align:               builder.Align,
-		RelocationOffset:    relocationsOffset,
-		NumberOfRelocations: numberOfRelocations,
+		RelocationOffset:    uint32(builder.relocationsOffset(ctx)),
+		NumberOfRelocations: uint32(len(builder.Relocations)),
 		Flags:               builder.Flags,
 	}
 }
@@ -48,7 +63,7 @@ func (builder Section64Builder) HeaderLen() uint64 {
 
 func (builder Section64Builder) DataLen() uint64 {
 	dataLen := uint64(len(builder.Data))
-	relocationsLen := builder.Relocations.Len()
+	relocationsLen := builder.relocationsLen()
 	return dataLen + relocationsLen
 }
 
@@ -61,9 +76,19 @@ func (builder Section64Builder) HeaderWriteTo(
 	return writerTo.WriteTo(writer)
 }
 
+func (builder Section64Builder) relocationWriterTos() []io.WriterTo {
+	writers := make([]io.WriterTo, len(builder.Relocations))
+	for i, relocation := range builder.Relocations {
+		info := relocation.Build()
+		writers[i] = writertoutils.BinaryMarshalerAdapter(info)
+	}
+	return writers
+}
+
 func (builder Section64Builder) DataWriteTo(writer io.Writer) (int64, error) {
-	return writertoutils.MultiWriterTo(
-		writertoutils.BufferWriterTo(builder.Data),
-		builder.Relocations,
-	).WriteTo(writer)
+	writerTos := append(
+		[]io.WriterTo{writertoutils.BufferWriterTo(builder.Data)},
+		builder.relocationWriterTos()...,
+	)
+	return writertoutils.MultiWriterTo(writerTos...).WriteTo(writer)
 }

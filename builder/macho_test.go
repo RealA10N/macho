@@ -198,15 +198,15 @@ func TestObjectRelocationsExpectedBinary(t *testing.T) {
 		SegmentName: [16]byte{'_', '_', 'T', 'E', 'X', 'T', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 		Data:        data,
 		Flags:       section64.AttrPureInstructions | section64.AttrSomeInstructions,
-		Relocations: section64.RelocationsBuilder{
-			section64.NewRelocationInfo(
-				0,
-				1,
-				true,
-				section64.RelocationLengthLong,
-				true,
-				section64.RelocationTypeArm64Branch26,
-			),
+		Relocations: []section64.RelocationBuilder{
+			{
+				Address:                0,
+				SymbolIndex:            1,
+				IsRelocationPcRelative: true,
+				Length:                 section64.RelocationLengthLong,
+				IsRelocationExtern:     true,
+				Type:                   section64.RelocationTypeArm64Branch26,
+			},
 		},
 	}
 
