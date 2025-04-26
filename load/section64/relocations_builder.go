@@ -6,9 +6,7 @@ import (
 	"alon.kr/x/writertoutils"
 )
 
-type RelocationsBuilder struct {
-	Relocations []RelocationInfo
-}
+type RelocationsBuilder []RelocationInfo
 
 func (builder RelocationsBuilder) Build() RelocationInfo {
 	return RelocationInfo{}
@@ -16,7 +14,7 @@ func (builder RelocationsBuilder) Build() RelocationInfo {
 
 // Returns the number of relocations in the relocations array.
 func (builder RelocationsBuilder) NumberOfRelocations() int {
-	return len(builder.Relocations)
+	return len(builder)
 }
 
 func (builder RelocationsBuilder) IsEmpty() bool {
@@ -29,8 +27,8 @@ func (builder RelocationsBuilder) Len() uint64 {
 }
 
 func (builder RelocationsBuilder) WriteTo(writer io.Writer) (int64, error) {
-	writerTos := make([]io.WriterTo, len(builder.Relocations))
-	for i, relocation := range builder.Relocations {
+	writerTos := make([]io.WriterTo, len(builder))
+	for i, relocation := range builder {
 		writerTos[i] = writertoutils.BinaryMarshalerAdapter(relocation)
 	}
 

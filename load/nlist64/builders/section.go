@@ -22,7 +22,7 @@ func (builder SectionNlist64Builder) GenEntryList(
 ) (nlist64.Nlist64, error) {
 	return nlist64.Nlist64{
 		StringTableOffset: ctx.StringTableOffset,
-		SymbolType:        builder.Type | nlist64.SectionSymbolType,
+		SymbolType:        builder.Type,
 		Section:           builder.Section,
 		Description:       builder.Description,
 		Value:             builder.Offset,

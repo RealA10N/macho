@@ -1,8 +1,6 @@
 package section64
 
 import (
-	"fmt"
-
 	"alon.kr/x/macho/utils"
 )
 
@@ -27,6 +25,7 @@ const (
 // https://github.com/aidansteele/osx-abi-macho-file-format-reference
 //
 // More relocation types can be found here:
+// https://github.com/apple/darwin-xnu/blob/main/EXTERNAL_HEADERS/mach-o/arm64/reloc.h
 // https://github.com/gimli-rs/object/blob/master/src/macho.rs
 type RelocationType uint32
 
@@ -71,7 +70,9 @@ const (
 	RelocationTypeArm64Addend
 )
 
-// Source: https://alexdremov.me/mystery-of-mach-o-object-file-builders/
+// Sources:
+// https://github.com/apple/darwin-xnu/blob/2ff845c2e033bd0ff64b5b6aa6063a1f8f65aa32/EXTERNAL_HEADERS/mach-o/reloc.h#L64
+// https://alexdremov.me/mystery-of-mach-o-object-file-builders/
 //
 //	struct relocation_info {
 //		int32_t  r_address;			/* offset in the section to */
@@ -97,9 +98,9 @@ func NewRelocationInfo(
 	length RelocationLength,
 	isRelocationExtern bool,
 	typ RelocationType,
-) (RelocationInfo, error) {
+) RelocationInfo {
 	if symbolIndex > RelocationSymbolNumMask {
-		return RelocationInfo{}, fmt.Errorf("symbol index too large")
+		return RelocationInfo{} // TODO: handle error
 	}
 
 	details := symbolIndex | (uint32(length) << 25) | (uint32(typ) << 28)
@@ -112,7 +113,7 @@ func NewRelocationInfo(
 		details |= RelocationExtern
 	}
 
-	return RelocationInfo{Address: address, Details: details}, nil
+	return RelocationInfo{Address: address, Details: details}
 }
 
 func (r RelocationInfo) MarshalBinary() ([]byte, error) {

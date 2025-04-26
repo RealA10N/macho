@@ -12,7 +12,7 @@ import (
 func TestSectionNlist64BuilderExpectedBinary(t *testing.T) {
 	builder := nlist64_builders.SectionNlist64Builder{
 		Name:        "_foo",
-		Type:        nlist64.ExternalSymbol,
+		Type:        nlist64.ExternalSymbol | nlist64.SectionSymbolType,
 		Section:     1,
 		Offset:      2902,
 		Description: nlist64.ReferenceFlagUndefinedNonLazy,
