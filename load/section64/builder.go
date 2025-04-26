@@ -14,21 +14,29 @@ type Section64Builder struct {
 	Address     uint64
 	Align       uint32
 	Flags       Section64Flags
+	Relocations RelocationsBuilder
 	// TODO: support custom section size (for BSS, etc.)
-	// TODO: support Relocations
 }
 
 func (builder Section64Builder) Build(
 	ctx *context.CommandContext,
 ) Section64Header {
+	numberOfRelocations := uint32(builder.Relocations.NumberOfRelocations())
+	relocationsOffset := uint32(0)
+	if numberOfRelocations != 0 {
+		relocationsOffset = uint32(ctx.DataOffset + uint64(len(builder.Data)))
+	}
+
 	return Section64Header{
-		SectionName: builder.SectionName,
-		SegmentName: builder.SegmentName,
-		Address:     builder.Address,
-		Size:        uint64(len(builder.Data)),
-		Offset:      uint32(ctx.DataOffset),
-		Align:       builder.Align,
-		Flags:       builder.Flags,
+		SectionName:         builder.SectionName,
+		SegmentName:         builder.SegmentName,
+		Address:             builder.Address,
+		Size:                uint64(len(builder.Data)),
+		Offset:              uint32(ctx.DataOffset),
+		Align:               builder.Align,
+		RelocationOffset:    relocationsOffset,
+		NumberOfRelocations: numberOfRelocations,
+		Flags:               builder.Flags,
 	}
 }
 
@@ -39,7 +47,9 @@ func (builder Section64Builder) HeaderLen() uint64 {
 }
 
 func (builder Section64Builder) DataLen() uint64 {
-	return uint64(len(builder.Data))
+	dataLen := uint64(len(builder.Data))
+	relocationsLen := builder.Relocations.Len()
+	return dataLen + relocationsLen
 }
 
 func (builder Section64Builder) HeaderWriteTo(
@@ -52,6 +62,8 @@ func (builder Section64Builder) HeaderWriteTo(
 }
 
 func (builder Section64Builder) DataWriteTo(writer io.Writer) (int64, error) {
-	n, err := writer.Write(builder.Data)
-	return int64(n), err
+	return writertoutils.MultiWriterTo(
+		writertoutils.BufferWriterTo(builder.Data),
+		builder.Relocations,
+	).WriteTo(writer)
 }

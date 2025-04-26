@@ -88,6 +88,8 @@ type RelocationInfo struct {
 	Details uint32
 }
 
+const RelocationInfoSize int = 8
+
 func NewRelocationInfo(
 	address uint32,
 	symbolIndex uint32,
